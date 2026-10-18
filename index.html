@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MazeLab — DFS Pathfinding Visualizer</title>
+    <meta name="description"
+        content="Interactive GUI application demonstrating Depth First Search (DFS) maze solving step-by-step with live backtracking, metrics, and customizable mazes.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- APPLICATION HEADER -->
+    <header class="app-header">
+        <div class="brand-section">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M7 3v6h4" />
+                    <path d="M17 21v-6h-4" />
+                    <path d="M7 15h4v6" />
+                    <path d="M13 3v6h4" />
+                </svg>
+            </div>
+            <div class="brand-titles">
+                <h1>MazeLab <span class="brand-tag">DFS Visualizer</span></h1>
+                <p>Explore how Depth First Search traverses, backtracks, and solves a maze</p>
+            </div>
+        </div>
+
+        <div class="header-status-badge">
+            <div id="statusDot" class="status-dot"></div>
+            <span id="statusText">IDLE — READY</span>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="app-container">
+
+        <!-- LEFT PANEL: CONTROLS & CONFIGURATION -->
+        <aside class="panel-card" aria-label="Controls Panel">
+            <div class="panel-card-header">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    Execution Controls
+                </h2>
+            </div>
+
+            <div class="panel-card-body">
+                <!-- Playback Group -->
+                <div class="control-group">
+                    <span class="group-title">Search Controls</span>
+                    <button id="btnPlay" class="btn btn-primary" title="Start or resume automatic DFS search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                        Play DFS
+                    </button>
+                    <div class="button-grid">
+                        <button id="btnPrev" class="btn" title="Step backward one step">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                            Prev Step
+                        </button>
+                        <button id="btnNext" class="btn" title="Step forward one step">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                            Next Step
+                        </button>
+                    </div>
+                    <button id="btnResetSearch" class="btn btn-danger"
+                        title="Clear current search markings and reset statistics">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                        </svg>
+                        Reset Search
+                    </button>
+                </div>
+
+                <!-- Animation Speed Slider -->
+                <div class="control-group">
+                    <span class="group-title">Animation Speed</span>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Step Interval</span>
+                            <span id="speedValue" class="slider-val-badge">70 ms</span>
+                        </div>
+                        <input id="speedSlider" type="range" min="10" max="500" value="70" step="10">
+                    </div>
+                </div>
+
+                <!-- Endpoint Selection Group -->
+                <div class="control-group">
+                    <span class="group-title">Endpoints Setup</span>
+                    <div class="button-grid">
+                        <button id="btnSetStart" class="btn btn-mode" title="Click a corridor cell to place Start">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 8v8M8 12h8" />
+                            </svg>
+                            Set Start
+                        </button>
+                        <button id="btnSetGoal" class="btn btn-mode" title="Click a corridor cell to place Goal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            Set Goal
+                        </button>
+                    </div>
+                    <button id="btnRandomEndpoints" class="btn" title="Pick two distinct reachable corridor cells">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" />
+                        </svg>
+                        Randomize Positions
+                    </button>
+                    <div id="modeInstruction" class="mode-instruction-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                        <span id="modeInstructionText">Ready to run DFS or customize endpoints.</span>
+                    </div>
+                </div>
+
+                <!-- Maze Source & Generation -->
+                <div class="control-group">
+                    <span class="group-title">Maze Generation</span>
+                    <button id="btnLoadSample" class="btn" title="Load validated 13×13 sample maze">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                        </svg>
+                        Load Sample Maze
+                    </button>
+                    <div class="button-grid">
+                        <select id="mazeSizeSelect" class="form-select" title="Grid Size">
+                            <option value="9">9 × 9 (Compact)</option>
+                            <option value="13" selected>13 × 13 (Standard)</option>
+                            <option value="17">17 × 17 (Large)</option>
+                            <option value="21">21 × 21 (Complex)</option>
+                        </select>
+                        <button id="btnGenerateRandom" class="btn"
+                            title="Generate connected random maze via DFS Backtracker">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <line x1="9" y1="3" x2="9" y2="21" />
+                                <line x1="15" y1="3" x2="15" y2="21" />
+                                <line x1="3" y1="9" x2="21" y2="9" />
+                                <line x1="3" y1="15" x2="21" y2="15" />
+                            </svg>
+                            New Maze
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Algorithm Order -->
+                <div class="control-group">
+                    <span class="group-title">DFS Neighbor Priority</span>
+                    <select id="orderSelect" class="form-select" title="Neighbor search priority order">
+                        <option value="UP,RIGHT,DOWN,LEFT">Up → Right → Down → Left</option>
+                        <option value="RIGHT,DOWN,LEFT,UP">Right → Down → Left → Up</option>
+                        <option value="DOWN,LEFT,UP,RIGHT">Down → Left → Up → Right</option>
+                        <option value="LEFT,UP,RIGHT,DOWN">Left → Up → Right → Down</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER PANEL: MAZE CANVAS & LIVE TICKER -->
+        <section class="maze-workspace" aria-label="Maze Visualization">
+            <div class="maze-card">
+                <div class="maze-meta-bar">
+                    <span class="maze-title-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M3 9h18M9 21V9" />
+                        </svg>
+                        <span id="mazeNameLabel">Sample Maze (13 × 13)</span>
+                    </span>
+                    <span id="hoverCoords" class="hover-coords-badge">Hover: cell (—, —)</span>
+                </div>
+
+                <!-- Canvas -->
+                <div id="canvasContainer" class="canvas-container">
+                    <canvas id="mazeCanvas" width="650" height="650"></canvas>
+                </div>
+            </div>
+
+            <!-- Algorithm Action Commentary Ticker -->
+            <div class="action-ticker-card">
+                <span class="ticker-label">Action Log</span>
+                <span id="actionTicker" class="ticker-text">Welcome to MazeLab. Select endpoints or click "Play DFS" to
+                    observe depth-first exploration.</span>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: STATISTICS, LEGEND & THEORY -->
+        <aside class="panel-card" aria-label="Metrics and Legend Panel">
+            <div class="panel-card-header">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Live Statistics
+                </h2>
+            </div>
+
+            <div class="panel-card-body">
+                <!-- Statistics Grid -->
+                <div class="stats-grid">
+                    <div class="stat-item" title="Distinct corridor cells visited by DFS">
+                        <span class="stat-label">Nodes Explored</span>
+                        <span id="statExplored" class="stat-value highlight-blue">0</span>
+                    </div>
+                    <div class="stat-item" title="Number of edges along the final DFS path from start to goal">
+                        <span class="stat-label">Solution Depth</span>
+                        <span id="statDepth" class="stat-value highlight-green">0</span>
+                    </div>
+                    <div class="stat-item" title="Total cells in the solution path (depth + 1)">
+                        <span class="stat-label">Path Length</span>
+                        <span id="statPathLen" class="stat-value highlight-purple">0</span>
+                    </div>
+                    <div class="stat-item" title="Current size of the DFS active stack">
+                        <span class="stat-label">DFS Stack Size</span>
+                        <span id="statStackSize" class="stat-value highlight-yellow">0</span>
+                    </div>
+                    <div class="stat-item" title="Current animation step index out of total recorded steps">
+                        <span class="stat-label">Current Step</span>
+                        <span id="statStep" class="stat-value">0 / 0</span>
+                    </div>
+                    <div class="stat-item" title="Current search outcome">
+                        <span class="stat-label">Search Status</span>
+                        <span id="statStatus" class="stat-value" style="font-size: 1rem;">IDLE</span>
+                    </div>
+                </div>
+
+                <!-- Cell Colours Legend -->
+                <div class="control-group">
+                    <span class="group-title">Visual Legend</span>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-start"></span>
+                            <span>Start (S)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-goal"></span>
+                            <span>Goal (G)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-current"></span>
+                            <span>Current Node</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-exploring"></span>
+                            <span>Yellow Line (Stack)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-visited"></span>
+                            <span>Visited Cell</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-deadend"></span>
+                            <span>Dead End (Red)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-path"></span>
+                            <span>Solution (Green)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch swatch-wall"></span>
+                            <span>Maze Wall</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theory & Educational Explanations (Accordion) -->
+                <div class="control-group">
+                    <span class="group-title">About DFS Algorithm</span>
+                    <div class="edu-accordion">
+                        <div class="edu-item open">
+                            <div class="edu-header">
+                                <span>1. Depth First Search & Stack</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="edu-body">
+                                DFS traverses as deep as possible along each branch before backtracking. It utilizes a
+                                <strong>LIFO (Last-In, First-Out)</strong> stack. In this visualizer, the yellow line
+                                displays the active stack from start to current node.
+                            </div>
+                        </div>
+
+                        <div class="edu-item">
+                            <div class="edu-header">
+                                <span>2. Dead Ends & Backtracking</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="edu-body">
+                                When DFS reaches a cell with no unvisited traversable neighbours, it marks that cell as
+                                a <strong>dead end (red)</strong> and pops it from the stack, backtracking to the
+                                previous parent cell to explore alternate branches.
+                            </div>
+                        </div>
+
+                        <div class="edu-item">
+                            <div class="edu-header">
+                                <span>3. Is DFS Optimal (Shortest)?</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="edu-body">
+                                <strong>No.</strong> DFS is not guaranteed to find the shortest path. It commits deeply
+                                to whichever branch matches its neighbour priority order first. In a tree maze (no
+                                cycles), only one path exists, but in a cyclic maze, DFS may take a convoluted path.
+                            </div>
+                        </div>
+
+                        <div class="edu-item">
+                            <div class="edu-header">
+                                <span>4. 4-Bit Maze Wall Encoding</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="edu-body">
+                                Walls are encoded via 4 bit flags: <code>WALL_N = 0x1</code> (North),
+                                <code>WALL_E = 0x2</code> (East), <code>WALL_S = 0x4</code> (South),
+                                <code>WALL_W = 0x8</code> (West). The 13×13 matrix defines shared corridor walls with
+                                open boundary exits at (0, 6) and (12, 6).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        <p>MazeLab — Depth First Search (DFS) Maze Pathfinding Visualizer • Built with HTML5, CSS3 & JavaScript</p>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="maze.js"></script>
+    <script src="dfs.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
