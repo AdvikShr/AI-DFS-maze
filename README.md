@@ -120,39 +120,10 @@ The application includes a verified 13×13 sample maze with open boundary exits:
 
 ---
 
-## 7. AI Viva / College Presentation Guide
-
-### Q1: What is Depth First Search (DFS)?
-> **Answer**: Depth First Search is an uninformed graph traversal algorithm that explores as deep as possible along each branch before backtracking. It operates on a **Last-In, First-Out (LIFO)** stack.
-
-### Q2: How does backtracking work in DFS?
-> **Answer**: When the current cell has no unvisited, traversable neighbours (a dead end), that cell is popped from the DFS stack. The algorithm returns to the previous node at the top of the stack and continues exploring its next unvisited neighbour.
-
-### Q3: Does DFS guarantee the shortest path?
-> **Answer**: **No.** In a general graph or maze with cycles, DFS will return the first path it discovers according to its neighbour search order, which may be significantly longer than the optimal shortest path. (Breadth First Search, or BFS, guarantees the shortest path in unweighted graphs).
-
-### Q4: What is the difference between Solution Depth and Path Length?
-> **Answer**:
-> - **Solution Depth**: The number of edges (transitions) from Start to Goal along the path.
-> - **Path Length**: The number of nodes (cells) in the solution path.
-> - $\text{Path Length} = \text{Solution Depth} + 1$. When Start equals Goal, Depth is 0 and Path Length is 1.
-
----
-
-## 8. Automated Testing & Validation Summary
+## 7. Automated Testing & Validation Summary
 
 The project includes an automated test suite in `test_dfs.js` running on Node.js:
 ```bash
 node test_dfs.js
 ```
 
-### Test Results: 23 Passed, 0 Failed
-1. **Sample Maze Shared Wall Consistency**: Verified all 169 cells have 100% reciprocal shared walls.
-2. **Boundary Exits**: Verified North exit at `(0, 6)` and South exit at `(12, 6)`.
-3. **Sample Maze South-to-North Traversal**: Verified solution found from `(12, 6)` to `(0, 6)`.
-4. **Physical Traversability**: Verified every transition along the final path has no obstructing wall.
-5. **Dead-End Detection**: Verified dead ends are properly flagged and backtracked.
-6. **Reconstructed Path Integrity**: Verified path begins at Start and terminates at Goal.
-7. **Start == Goal Handling**: Verified immediate resolution with depth = 0, nodes explored = 1.
-8. **Unreachable Goal Handling**: Verified detection of isolated goals returning `NO_SOLUTION` and depth = 0.
-9. **Procedural Random Mazes**: Verified 100% connectivity and wall consistency for procedural generation.
